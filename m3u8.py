@@ -1,5 +1,5 @@
 #coding: utf-8
-
+from sys import argv
 from gevent import monkey
 monkey.patch_all()
 from gevent.pool import Pool
@@ -18,6 +18,7 @@ class Downloader:
         self.succed = {}
         self.failed = []
         self.ts_total = 0
+        self.ts_finish = 0
 
     def _get_http_session(self, pool_connections, pool_maxsize, max_retries):
             session = requests.Session()
@@ -39,7 +40,7 @@ class Downloader:
                 ts_list = zip(ts_list, [n for n in xrange(len(ts_list))])
                 if ts_list:
                     self.ts_total = len(ts_list)
-                    print self.ts_total
+                    print 'Total files:'+bytes(self.ts_total)
                     g1 = gevent.spawn(self._join_file)
                     self._download(ts_list)
                     g1.join()
@@ -62,14 +63,15 @@ class Downloader:
                 r = self.session.get(url, timeout=20)
                 if r.ok:
                     file_name = url.split('/')[-1].split('?')[0]
-                    print file_name
+                    self.ts_finish += 1
+                    print file_name+'\t|\t'+r.headers['content-length']+'B'+'\t|\t'+bytes(self.ts_finish)+'/'+bytes(self.ts_total)
                     with open(os.path.join(self.dir, file_name), 'wb') as f:
                         f.write(r.content)
                     self.succed[index] = file_name
                     return
             except:
                 retry -= 1
-        print '[FAIL]%s' % url
+        print '[Fail]%s' % url
         self.failed.append((url, index))
 
     def _join_file(self):
@@ -91,5 +93,14 @@ class Downloader:
             outfile.close()
 
 if __name__ == '__main__':
-    downloader = Downloader(50)
-    downloader.run('http://m3u8.test.com/test.m3u8', '/home/video/')
+    try:
+        cthread = int(argv[3])
+    except:
+        cthread = 25
+    cm3u8url = argv[1]
+    cpath = argv[2]
+    cpath = cpath.replace("\\","\\\\")
+    print "[Downloading]:", cm3u8url
+    print "[Save Path]:", cpath
+    downloader = Downloader(cthread)
+    downloader.run(cm3u8url, cpath)
