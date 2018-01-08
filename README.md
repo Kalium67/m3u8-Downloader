@@ -1,8 +1,16 @@
 # m3u8-Downloader
-Download m3u8 to ts with multithreading
+多线程下载m3u8视频的工具
 
-# How to use
+# 使用方法
+
+## py程序:
 ```
-downloader = Downloader(50)
-downloader.run('http://m3u8.test.com/test.m3u8', '/home/video/')
+m3u8.py \[视频地址\] \[下载路径\] \[线程数(可选)\]
 ```
+
+## exe程序:
+```
+m3u8.py \[视频地址\] \[下载路径\] \[线程数(可选)\]
+```
+
+## bat易用版本:
