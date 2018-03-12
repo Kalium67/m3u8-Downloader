@@ -3,7 +3,20 @@
 
 # 使用方法
 
-### 快速使用(bat易用版本)
+## 命令行使用方法
+
+### py程序:
+```
+m3u8.py [视频地址] [下载路径] [-t 线程数(可选)] [-s 开始时间(可选)] [-e 结束时间(可选)] [-f 开始文件(可选)] [-g 结束文件(可选)]
+```
+使用 -f 和 -g 时, -s 和 -e 无效
+
+### exe程序:
+```
+m3u8.py [视频地址] [下载路径] [-t 线程数(可选)] [-s 开始时间(可选)] [-e 结束时间(可选)] [-f 开始文件(可选)] [-g 结束文件(可选)]
+```
+
+## 快速使用(bat易用版本)
 
 1、下载压缩包(windows 64位)
 https://github.com/xsaiting/m3u8-Downloader/releases/download/1.0/m3u8-Downloader_v1.0.zip
@@ -18,14 +31,4 @@ https://github.com/xsaiting/m3u8-Downloader/releases/download/1.0/m3u8-Downloade
 
 5、按回车下载
 
-## 命令行使用方法
 
-### py程序:
-```
-m3u8.py [视频地址] [下载路径] [线程数(可选)]
-```
-
-### exe程序:
-```
-m3u8.exe [视频地址] [下载路径] [线程数(可选)]
-```
