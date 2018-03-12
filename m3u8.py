@@ -8,6 +8,7 @@ import requests
 import urlparse
 import os
 import time
+import getopt
 
 class Downloader:
     def __init__(self, pool_size, retry=3):
@@ -27,16 +28,30 @@ class Downloader:
             session.mount('https://', adapter)
             return session
 
-    def run(self, m3u8_url, dir=''):
+    def run(self, m3u8_url, dir='', start_time=0, end_time=-1, start_file=0, end_file=0):
         self.dir = dir
         if self.dir and not os.path.isdir(self.dir):
             os.makedirs(self.dir)
-
         r = self.session.get(m3u8_url, timeout=10)
         if r.ok:
             body = r.content
             if body:
                 ts_list = [urlparse.urljoin(m3u8_url, n.strip()) for n in body.split('\n') if n and not n.startswith("#")]
+                if not (start_file or end_file==0):
+                    ts_time = [float(n[8:-1]) for n in body.split('\n') if n and n.startswith("#EXTINF:")]
+                    i = 0
+                    for index in range(len(ts_time)):
+                        i += ts_time[index]
+                        if i <= start_time:
+                            start_file=index+1
+                        if i >= end_time and end_time != -1:
+                            end_file=index
+                            break
+                    if not end_file:
+                        end_file=len(ts_time)
+                    print "[Start File]:\t",start_file
+                    print "[End File]:\t",end_file
+                ts_list = ts_list[start_file:end_file]
                 ts_list = zip(ts_list, [n for n in xrange(len(ts_list))])
                 if ts_list:
                     self.ts_total = len(ts_list)
@@ -93,14 +108,41 @@ class Downloader:
             outfile.close()
 
 if __name__ == '__main__':
-    try:
-        cthread = int(argv[3])
-    except:
-        cthread = 25
+    cthread = 25
     cm3u8url = argv[1]
     cpath = argv[2]
     cpath = cpath.replace("\\","\\\\")
+    starttime=None
+    endtime=None
+    startfile=None
+    endfile=None
+    try:
+        print argv[3:]
+        opts, args = getopt.getopt(argv[3:],"ht:s:e:f:g:")
+        print opts
+    except getopt.GetoptError:
+        print 'm3u8.py -s <start_time> -e <end_time>'
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print 'm3u8.py -s <start_time> -e <end_time>'
+            sys.exit()
+        elif opt in ("-t", "--thread"):
+            cthread = arg
+        elif opt in ("-s", "--starttime"):
+            starttime = float(arg)
+        elif opt in ("-e", "--endtime"):
+            endtime = float(arg)
+        elif opt in ("-f", "--startfile"):
+            startfile = int(arg)
+        elif opt in ("-g", "--endfile"):
+            endfile = int(arg)
     print "[Downloading]:", cm3u8url
     print "[Save Path]:", cpath
+    if starttime: print "[Start Time]:", starttime
+    if endtime: print "[End Time]:", endtime
+    if startfile: print "[Start File]:", startfile
+    if endfile: print "[End File]:", endfile
+
     downloader = Downloader(cthread)
-    downloader.run(cm3u8url, cpath)
+    downloader.run(cm3u8url, cpath, starttime, endtime, startfile, endfile)
